@@ -67,14 +67,46 @@ def logistic_gradient_descent(X, y , learning_rate = 0.1, epochs = 1000):
     return theta, loss_history
 
 
-print("Unique y values:", np.unique(y_train.values))
+#print("Unique y values:", np.unique(y_train.values))
 
 theta_log, loss_history = logistic_gradient_descent(X_train_b, y_train.values, learning_rate=0.1, epochs=1000  )
-print("Final Log Loss:", loss_history[-1])
-print("Theta:", theta_log)
+#print("Final Log Loss:", loss_history[-1])
+#print("Theta:", theta_log)
 
-plt.plot(loss_history)
-plt.xlabel("Epochs")
-plt.ylabel("Log Loss")
-plt.title("Logistic Regression Training Loss")
-plt.show()
+#plt.plot(loss_history)
+#plt.xlabel("Epochs")
+#plt.ylabel("Log Loss")
+#plt.title("Logistic Regression Training Loss")
+#plt.show()
+
+def predict_proba(X, theta):
+    return sigmoid(X.dot(theta))
+
+val_probs = predict_proba(X_val_b, theta_log)
+
+def predict_classes(probs, threshold = 0.5):
+    return (probs >= threshold).astype(int)
+
+y_value_pred = predict_classes(val_probs, threshold=0.5)
+
+accuracy = np.mean(y_value_pred.flatten() == y_val.values)
+print("Validation Accuracy:", accuracy)
+
+def precision_call(y_true, y_pred):
+    y_true = y_true.values.reshape(-1,1)
+    tp = np.sum((y_true == 1) & (y_pred == 1))
+    fp = np.sum((y_true ==0) & (y_pred==1))
+    fn = np.sum((y_true == 1) & (y_pred == 0))
+    precision = tp / (tp + fp + 1e-15)
+    recall = tp / (tp + fn + 1e-15)
+    return precision, recall
+
+precision, recall = precision_call(y_val, y_value_pred)
+print("Precision:", precision)
+print("Recall:", recall)
+
+for t in [0.3, 0.4, 0.5, 0.6, 0.7]:
+    preds = predict_classes(val_probs, threshold=t)
+    p, r = precision_call(y_val, preds)
+    print(f"Threshold {t}: Precision={p:.3f}, Recall={r:.3f}")
+
